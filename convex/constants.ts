@@ -1,0 +1,16 @@
+export const ADMIN_EMAIL="sankha@easydotasks.com";
+export const POST_PER_PAGE_HOME=10;
+export const POST_PER_PAGE_ADMIN=20;
+export const MAX_IMAGE_SIZE=10 *1024 * 1024;
+export const ALLOWED_IMAGE_TYPES=["image/jpeg","image/png","image/jpg","image/webp"];
+export const MAX_TITLE_LENGTH = 200;
+export const MIN_TITLE_LENGTH = 3;
+export const MAX_CONTENT_LENGTH = 50000;
+export const MIN_CONTENT_LENGTH = 10;
+export const MAX_BIO_LENGTH = 500;
+export const MAX_NAME_LENGTH = 50;
+export const MIN_NAME_LENGTH = 2;
+export const MAX_TAGS = 5;
+export const MAX_TAG_LENGTH = 30;
+export const MIN_TAG_LENGTH = 1;
+export const EXCERPT_LENGTH = 150;
