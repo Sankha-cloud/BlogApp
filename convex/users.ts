@@ -1,6 +1,7 @@
 import {mutation,query} from "./_generated/server";
 import {v} from "convex/values";
-import {ADMIN_EMAIL,POST_PER_PAGE_HOME,POST_PER_PAGE_ADMIN,MAX_IMAGE_SIZE,ALLOWED_IMAGE_TYPES,MAX_TITLE_LENGTH,MIN_TITLE_LENGTH,MAX_CONTENT_LENGTH,MIN_CONTENT_LENGTH,MAX_BIO_LENGTH,MAX_NAME_LENGTH,MIN_NAME_LENGTH,MAX_TAGS,MAX_TAG_LENGTH,MIN_TAG_LENGTH,EXCERPT_LENGTH} from "./constants";
+import {ADMIN_EMAIL} from "./constants";
+import { paginationOptsValidator } from "convex/server";
 //Get current authenticated user
 export const getCurrentUser=query({
  
@@ -75,5 +76,42 @@ export const updateProfile=mutation({
       avatar:args.avatar,
       bio:args.bio
     });
+    const usersPost=await ctx.db.query("posts").withIndex("by_author_id",(q)=>q.eq("authorId",user._id)).collect();
+    for(const post of usersPost){
+      await ctx.db.patch(post._id,{
+        authorName:args.name,
+        authorAvatar:args.avatar,
+      })
+  }
+  return {success:true};
+}});
+export const getUserProfile=query({
+  args:{
+    userId:v.id("users"),
+    paginationOpts:paginationOptsValidator,
+    searchQuery:v.optional(v.string())
+  },
+  handler:async(ctx,args)=>{
+    const identity=await ctx.auth.getUserIdentity();
+    if(!identity){
+      return null;
+    }
+    const user=await ctx.db.get(args.userId);
+    if(!user){
+      return null;
+    }
+   let posts=await ctx.db.query("posts").withIndex("by_author_id",(q)=>q.eq("authorId",user._id)).order("desc").collect();
+   if(args.searchQuery){
+    const searchLower=args.searchQuery.toLowerCase();
+    posts=posts.filter((post)=>post.title.toLowerCase().includes(searchLower) || post.tags.some(tag =>tag.toLowerCase().includes(searchLower)) || post.authorName.toLowerCase().includes(searchLower));
+   }
+   const start=args.paginationOpts.numItems * (args.paginationOpts.cursor ? parseInt(args.paginationOpts.cursor) : 0);
+   const paginatedPosts=posts.slice(start,start + args.paginationOpts.numItems);
+   return {
+    user,
+    page:paginatedPosts,
+    isDone:start + args.paginationOpts.numItems >= posts.length,
+    continueCursor:(start + args.paginationOpts.numItems < posts.length) ? String(args.paginationOpts.cursor ? parseInt(args.paginationOpts.cursor) + 1 : 1) : undefined
+   }
   }
 })

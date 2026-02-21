@@ -15,6 +15,7 @@ export default defineSchema({
     authorId:v.id("users"),
     title:v.string(),
     content:v.string(),
+    excerpt:v.string(),
     imageId:v.optional(v.id("_storage")),
     imageUrls:v.optional(v.string()),
     tags:v.array(v.string()),
